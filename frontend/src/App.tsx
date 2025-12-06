@@ -1,26 +1,10 @@
 import { useState, useEffect } from "react";
-import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  flexRender,
-  type SortingState,
-  type Header,
-} from "@tanstack/react-table";
-import { format } from "date-fns";
-import {
-  SearchParams,
-  SortOrder,
-  type UsageItem,
-  type UsageResponse,
-} from "./types";
+import { type SortingState } from "@tanstack/react-table";
+import { SearchParams, SortOrder, type UsageResponse } from "./types";
+import { useFetch } from "./useFetch";
 import UsageBarChart from "./UsageBarChart";
-
+import UsageTable from "./UsageTable";
 import "./App.css";
-
-function formatTimestamp(ts: string) {
-  return format(new Date(ts), "dd-MM-yyyy HH:mm");
-}
 
 function getOrderParam(param: string): SortOrder | undefined {
   const params = new URLSearchParams(window.location.search);
@@ -56,18 +40,10 @@ function getSorting(): SortingState {
 }
 
 function App() {
-  const [usage, setUsage] = useState<UsageItem[]>([]);
-  const [sorting, setSorting] = useState<SortingState>(getSorting());
-
-  useEffect(() => {
-    fetch("http://127.0.0.1:8000/usage")
-      .then((res) => res.json())
-      .then((data: UsageResponse) => setUsage(data.usage));
-  }, []);
-
-  useEffect(() => {
-    setSorting(getSorting());
-  }, []);
+  const [sorting, setSorting] = useState<SortingState>(() => getSorting());
+  const { data, isLoading, isError } = useFetch<UsageResponse>(
+    "http://127.0.0.1:8000/usage"
+  );
 
   useEffect(() => {
     const reportSort = sorting.find((s) => s.id === "report_name");
@@ -90,97 +66,21 @@ function App() {
     );
   }, [sorting]);
 
-  // columns
-  const columns = [
-    {
-      accessorKey: "message_id",
-      header: "Message ID",
-      cell: (info: any) => info.getValue(),
-      enableSorting: false,
-    },
-    {
-      accessorKey: "timestamp",
-      header: "Timestamp",
-      cell: (info: any) => formatTimestamp(info.getValue()),
-      enableSorting: false,
-    },
-    {
-      accessorKey: "report_name",
-      header: "Report Name",
-      cell: (info: any) => info.getValue() || "",
-      enableSorting: true,
-    },
-    {
-      accessorKey: "credits_used",
-      header: "Credits Used",
-      cell: (info: any) => Number(info.getValue()).toFixed(2),
-      enableSorting: true,
-    },
-  ];
+  if (isLoading) return <div className="loading-message">Loading...</div>;
 
-  const table = useReactTable({
-    data: usage,
-    columns,
-    state: { sorting },
-    onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    manualSorting: false,
-    enableMultiSort: true,
-    enableSortingRemoval: true,
-  });
-
-  function renderSortIcon(header: Header<UsageItem, unknown>) {
-    const sorted = header.column.getIsSorted();
-    if (!sorted) return null;
-    if (sorted === "asc") return <span>▲</span>;
-    if (sorted === "desc") return <span>▼</span>;
-    return null;
-  }
-
-  function handleSort(header: Header<UsageItem, unknown>) {
-    if (!header.column.getCanSort()) return;
-    header.column.toggleSorting(undefined, true);
-  }
+  if (isError || !data)
+    return <div className="error-message">Error loading usage data.</div>;
 
   return (
-    <div style={{ marginTop: "2em" }}>
-      <UsageBarChart data={usage} />
+    <div className="app-container">
+      <h2>Usage Bar Chart</h2>
+      <UsageBarChart data={data.usage} />
       <h2>Usage Table</h2>
-      <table>
-        <thead>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th
-                  key={header.id}
-                  onClick={() => handleSort(header)}
-                  style={{
-                    cursor: header.column.getCanSort() ? "pointer" : "default",
-                  }}
-                >
-                  {flexRender(
-                    header.column.columnDef.header,
-                    header.getContext()
-                  )}
-                  {renderSortIcon(header)}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.map((row) => (
-            <tr key={row.id}>
-              {row.getVisibleCells().map((cell) => (
-                <td key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <UsageTable
+        usage={data.usage}
+        sorting={sorting}
+        setSorting={setSorting}
+      />
     </div>
   );
 }

@@ -27,8 +27,13 @@ interface UsageBarChartProps {
 
 const UsageBarChart = ({ data }: UsageBarChartProps) => {
   const chartData = groupCreditsByDate(data);
+
+  if (!data || data.length === 0) {
+    return null;
+  }
+
   return (
-    <div style={{ width: "100%", height: 240, marginBottom: 32 }}>
+    <div className="chart-container">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={chartData}>
           <XAxis dataKey="date" fontSize={12} />
