@@ -14,11 +14,12 @@ import {
   type UsageItem,
   type UsageResponse,
 } from "./types";
+import UsageBarChart from "./UsageBarChart";
 
 import "./App.css";
 
 function formatTimestamp(ts: string) {
-  return format(new Date(ts), "MM-dd-yyyy HH:mm");
+  return format(new Date(ts), "dd-MM-yyyy HH:mm");
 }
 
 function getOrderParam(param: string): SortOrder | undefined {
@@ -144,6 +145,7 @@ function App() {
 
   return (
     <div style={{ marginTop: "2em" }}>
+      <UsageBarChart data={usage} />
       <h2>Usage Table</h2>
       <table>
         <thead>
