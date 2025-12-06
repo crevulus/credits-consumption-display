@@ -25,6 +25,7 @@ export function useFetch<T>(url: string): UseFetchResult<T> {
       } catch (error) {
         setIsError(true);
         setIsLoading(false);
+        console.log("Fetch error:", error);
       }
     }
 

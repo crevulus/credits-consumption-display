@@ -7,6 +7,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { format } from "date-fns";
+
+import { COLORS } from "./colors";
 import type { UsageItem } from "./types";
 
 function groupCreditsByDate(data: UsageItem[]) {
@@ -17,7 +19,7 @@ function groupCreditsByDate(data: UsageItem[]) {
   });
   return Object.entries(map).map(([date, credits]) => ({
     date,
-    credits: Number(credits).toFixed(2),
+    Credits: credits.toFixed(2),
   }));
 }
 
@@ -36,10 +38,18 @@ const UsageBarChart = ({ data }: UsageBarChartProps) => {
     <div className="chart-container">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={chartData}>
-          <XAxis dataKey="date" fontSize={12} />
-          <YAxis fontSize={12} />
-          <Tooltip />
-          <Bar dataKey="credits" fill="#8884d8" />
+          <XAxis dataKey="date" fontSize={12} stroke={COLORS.primary} />
+          <YAxis fontSize={12} stroke={COLORS.primary} />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: COLORS.white,
+              border: `2px solid ${COLORS.accent}`,
+              borderRadius: "4px",
+            }}
+            labelStyle={{ color: COLORS.primary, fontWeight: 600 }}
+            itemStyle={{ fontWeight: 600 }}
+          />
+          <Bar dataKey="Credits" fill={COLORS.primary} radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

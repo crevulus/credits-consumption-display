@@ -73,9 +73,9 @@ function App() {
 
   return (
     <div className="app-container">
-      <h2>Usage Bar Chart</h2>
+      <h2 className="section-header">Usage Bar Chart</h2>
       <UsageBarChart data={data.usage} />
-      <h2>Usage Table</h2>
+      <h2 className="section-header">Usage Table</h2>
       <UsageTable
         usage={data.usage}
         sorting={sorting}

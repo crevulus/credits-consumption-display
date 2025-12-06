@@ -5,6 +5,7 @@ import {
   flexRender,
   type SortingState,
   type Header,
+  type CellContext,
 } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { type UsageItem } from "./types";
@@ -21,39 +22,40 @@ type UsageTableProps = {
   ) => void;
 };
 
+const columns = [
+  {
+    accessorKey: "message_id",
+    header: "Message ID",
+    cell: (info: CellContext<UsageItem, unknown>) => info.getValue(),
+    enableSorting: false,
+  },
+  {
+    accessorKey: "timestamp",
+    header: "Timestamp",
+    cell: (info: CellContext<UsageItem, unknown>) =>
+      formatTimestamp(info.getValue() as string),
+    enableSorting: false,
+  },
+  {
+    accessorKey: "report_name",
+    header: "Report Name",
+    cell: (info: CellContext<UsageItem, unknown>) => info.getValue() || "",
+    enableSorting: true,
+  },
+  {
+    accessorKey: "credits_used",
+    header: "Credits Used",
+    cell: (info: CellContext<UsageItem, unknown>) =>
+      Number(info.getValue()).toFixed(2),
+    enableSorting: true,
+  },
+];
+
 export default function UsageTable({
   usage,
   sorting,
   setSorting,
 }: UsageTableProps) {
-  // columns
-  const columns = [
-    {
-      accessorKey: "message_id",
-      header: "Message ID",
-      cell: (info: any) => info.getValue(),
-      enableSorting: false,
-    },
-    {
-      accessorKey: "timestamp",
-      header: "Timestamp",
-      cell: (info: any) => formatTimestamp(info.getValue()),
-      enableSorting: false,
-    },
-    {
-      accessorKey: "report_name",
-      header: "Report Name",
-      cell: (info: any) => info.getValue() || "",
-      enableSorting: true,
-    },
-    {
-      accessorKey: "credits_used",
-      header: "Credits Used",
-      cell: (info: any) => Number(info.getValue()).toFixed(2),
-      enableSorting: true,
-    },
-  ];
-
   const table = useReactTable({
     data: usage,
     columns,
@@ -68,10 +70,9 @@ export default function UsageTable({
 
   function renderSortIcon(header: Header<UsageItem, unknown>) {
     const sorted = header.column.getIsSorted();
-    if (!sorted) return null;
-    if (sorted === "asc") return <span>▲</span>;
-    if (sorted === "desc") return <span>▼</span>;
-    return null;
+    if (sorted === "asc") return <span className="sort-icon">▲</span>;
+    if (sorted === "desc") return <span className="sort-icon">▼</span>;
+    return <span className="sort-icon sort-icon-hidden">▲</span>;
   }
 
   function handleSort(header: Header<UsageItem, unknown>) {
@@ -80,10 +81,10 @@ export default function UsageTable({
   }
 
   return (
-    <table>
-      <thead>
+    <table className="usage-table">
+      <thead className="table-head">
         {table.getHeaderGroups().map((headerGroup) => (
-          <tr key={headerGroup.id}>
+          <tr className="table-row" key={headerGroup.id}>
             {headerGroup.headers.map((header) => (
               <th
                 key={header.id}
@@ -104,11 +105,11 @@ export default function UsageTable({
           </tr>
         ))}
       </thead>
-      <tbody>
+      <tbody className="table-body">
         {table.getRowModel().rows.map((row) => (
           <tr key={row.id}>
             {row.getVisibleCells().map((cell) => (
-              <td key={cell.id}>
+              <td className="table-cell" key={cell.id}>
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </td>
             ))}
